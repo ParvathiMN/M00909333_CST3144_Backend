@@ -42,20 +42,68 @@ app.param('collectionName', (req, res, next, collectionName) => {
         }) 
     })  
 
+    app.get('/collection/Lesson', (req, res, next) => {
+        const searchQuery = req.query.q; 
+        const searchRegex = new RegExp(searchQuery, 'i'); //case-insensitive
+    
+        // Find lessons by subject or location
+        req.collection.find({
+            $or: [
+                { subject: searchRegex }, 
+                { Location: searchRegex } 
+            ]
+        }).toArray((error, results) => {
+            if (error) return next(error);
+            res.json(results); 
+        });
+    });
+    
+
     app.post('/collection/:collectionName', (req, res, next) => { 
         req.collection.insert(req.body, (e, results) => { 
         if (e) return next(e) 
         res.send(results.ops)
          }) 
         }) 
+
+        app.get('/collection/Orders', (req, res, next) => {
+            req.collection.find({}).toArray((error, results) => {
+                if (error) return next(error);
+                res.json(results); 
+            });
+        });
         
-      const ObjectID = require('mongodb').ObjectID; 
-app.get('/collection/:collectionName/:id', (req, res, next) => { 
-req.collection.findOne({ _id: new ObjectID(req.params.id) }, (e, result) => { 
-if (e) return next(e) 
-res.send(result) 
-}) 
-}) 
+        app.post('/collection/orders', async (req, res) => {
+            try {
+                const orderDetails = req.body;
+        
+                // Check if orderDetails contains the necessary fields
+                if (!orderDetails.customer || !orderDetails.items || !orderDetails.totalPrice) {
+                    return res.status(400).json({ message: 'Missing required order fields' });
+                }
+        
+                // Insert the order into the 'Orders' collection
+                const result = await db.collection('Orders').insertOne(orderDetails);
+        
+                // Respond with success
+                res.status(201).json({
+                    message: 'Order placed successfully',
+                    order: result.ops[0]
+                });
+            } catch (err) {
+                // Handle errors
+                console.error('Order insertion failed:', err);
+                res.status(500).json({ message: 'Failed to create order', error: err.message });
+            }
+        });
+        
+    const ObjectID = require('mongodb').ObjectID; 
+    app.get('/collection/:collectionName/:id', (req, res, next) => { 
+    req.collection.findOne({ _id: new ObjectID(req.params.id) }, (e, result) => { 
+    if (e) return next(e) 
+    res.send(result) 
+    }) 
+    }) 
 
 app.put('/collection/:collectionName/:id', (req, res, next) => { 
     req.collection.update( 
