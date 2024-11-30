@@ -70,6 +70,14 @@ app.post('/collection/:collectionName', (req, res, next) => {
     }); 
 });
 
+// Retrieve all documents from the "Orders" collection
+app.get('/collection/Orders', (req, res, next) => {
+    req.collection.find({}).toArray((error, results) => {
+        if (error) return next(error);
+        res.json(results); 
+    });
+});
+
 // Serve static files from the "image" directory
 app.use(function(req, res, next) { 
     const filePath = path.join(__dirname, "image", req.url); 
