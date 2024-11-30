@@ -46,6 +46,22 @@ app.get('/collection/:collectionName', (req, res, next) => {
     }); 
 });
 
+// Search for lessons by subject or location using query parameters
+app.get('/collection/Lesson', (req, res, next) => {
+    const searchQuery = req.query.q; 
+    const searchRegex = new RegExp(searchQuery, 'i'); // Case-insensitive regex for search
+
+    req.collection.find({
+        $or: [
+            { subject: searchRegex }, // Matches lessons with the query in the subject field
+            { Location: searchRegex } // Matches lessons with the query in the Location field
+        ]
+    }).toArray((error, results) => {
+        if (error) return next(error);
+        res.json(results); 
+    });
+});
+
 // Add a new document to a specified collection
 app.post('/collection/:collectionName', (req, res, next) => { 
     req.collection.insert(req.body, (e, results) => { 
