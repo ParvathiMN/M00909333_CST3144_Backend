@@ -5,6 +5,7 @@ const MongoClient = require('mongodb').MongoClient;
 var path = require("path"); 
 var fs = require("fs"); 
 
+
 const app = express();
 
 // Middleware to parse JSON request bodies
@@ -47,18 +48,33 @@ app.get('/collection/:collectionName', (req, res, next) => {
 });
 
 // Search for lessons by subject or location using query parameters
-app.get('/collection/Lesson', (req, res, next) => {
-    const searchQuery = req.query.q; 
-    const searchRegex = new RegExp(searchQuery, 'i'); // Case-insensitive regex for search
+app.get("/search", function (req, res) {
+    const searchQuery = req.query.q; // Get the search query from the URL
 
-    req.collection.find({
+    if (!searchQuery) {
+        return res.status(400).send("Search query parameter 'q' is required.");
+    }
+
+    // Create a case-insensitive regex to match the search query
+    const searchRegex = new RegExp(searchQuery, 'i');
+
+    db.collection('Lesson').find({
         $or: [
-            { subject: searchRegex }, // Matches lessons with the query in the subject field
-            { Location: searchRegex } // Matches lessons with the query in the Location field
+            { subject: { $regex: searchRegex } },
+            { Location: { $regex: searchRegex } }
         ]
-    }).toArray((error, results) => {
-        if (error) return next(error);
-        res.json(results); 
+    }).toArray((err, results) => {
+        if (err) {
+            return res.status(500).send("Error occurred while searching.");
+        }
+
+        // If there are results, send them as a JSON response
+        if (results.length > 0) {
+            res.json(results);
+        } else {
+            // If no matches found, send a message
+            res.send("No lessons found matching the search criteria.");
+        }
     });
 });
 

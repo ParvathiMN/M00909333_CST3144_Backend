@@ -67,7 +67,7 @@ let products =[
     Location: "Canberra",
     price : 100,
     availableslots: 5 ,
-    image : "image/tennis.jpeg"  ,
+    image : "image/t.jpeg"  ,
     rating: 3 
 },
 {
@@ -87,5 +87,6 @@ let products =[
     availableslots: 5 ,
     image : "image/cyber-removebg-preview.png"  ,
     rating: 4
-},
-]
+}
+];
+
