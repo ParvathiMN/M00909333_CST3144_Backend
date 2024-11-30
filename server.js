@@ -112,6 +112,19 @@ app.get('/collection/:collectionName/:id', (req, res, next) => {
     }); 
 });
 
+// Update a document by ID in a specified collection
+app.put('/collection/:collectionName/:id', (req, res, next) => { 
+    req.collection.update(
+        { _id: new ObjectID(req.params.id) }, 
+        { $set: req.body }, // Update fields provided in the request body
+        { safe: true, multi: false },  
+        (e, result) => { 
+            if (e) return next(e); 
+            res.send((result.result.n === 1) ? { msg: 'success' } : { msg: 'error' }); 
+        }
+    ); 
+});
+
 // Serve static files from the "image" directory
 app.use(function(req, res, next) { 
     const filePath = path.join(__dirname, "image", req.url); 
