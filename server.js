@@ -42,22 +42,7 @@ app.param('collectionName', (req, res, next, collectionName) => {
         }) 
     })  
 
-    app.get('/collection/Lesson', (req, res, next) => {
-        const searchQuery = req.query.q; 
-        const searchRegex = new RegExp(searchQuery, 'i'); //case-insensitive
-    
-        // Find lessons by subject or location
-        req.collection.find({
-            $or: [
-                { subject: searchRegex }, 
-                { Location: searchRegex } 
-            ]
-        }).toArray((error, results) => {
-            if (error) return next(error);
-            res.json(results); 
-        });
-    });
-    
+   
 
     app.post('/collection/:collectionName', (req, res, next) => { 
         req.collection.insert(req.body, (e, results) => { 
@@ -71,30 +56,6 @@ app.param('collectionName', (req, res, next, collectionName) => {
                 if (error) return next(error);
                 res.json(results); 
             });
-        });
-        
-        app.post('/collection/orders', async (req, res) => {
-            try {
-                const orderDetails = req.body;
-        
-                // Check if orderDetails contains the necessary fields
-                if (!orderDetails.customer || !orderDetails.items || !orderDetails.totalPrice) {
-                    return res.status(400).json({ message: 'Missing required order fields' });
-                }
-        
-                // Insert the order into the 'Orders' collection
-                const result = await db.collection('Orders').insertOne(orderDetails);
-        
-                // Respond with success
-                res.status(201).json({
-                    message: 'Order placed successfully',
-                    order: result.ops[0]
-                });
-            } catch (err) {
-                // Handle errors
-                console.error('Order insertion failed:', err);
-                res.status(500).json({ message: 'Failed to create order', error: err.message });
-            }
         });
         
     const ObjectID = require('mongodb').ObjectID; 
@@ -115,29 +76,6 @@ app.put('/collection/:collectionName/:id', (req, res, next) => {
     res.send((result.result.n === 1) ? {msg: 'success'} : {msg: 'error'}) 
     }) 
     })
-
-
-
-app.use(function(req, res, next) { 
-    // Uses path.join to find the path where the file should be 
-    var filePath = path.join(__dirname, "image", req.url); 
-    // Built-in fs.stat gets info about a file 
-    fs.stat(filePath, function(err, fileInfo) { 
-    if (err) { 
-    next(); 
-    return; 
-    } 
-    if (fileInfo.isFile()) res.sendFile(filePath); 
-    else next(); 
-    }); 
-    }); 
-
-    // There is no 'next' argument because this is the last middleware. 
-    app.use(function(req, res) { 
-    // Sets the status code to 404 
-    res.status(404); 
-    res.send("File not found!"); 
-    }); 
 
 
 const port =process.env.PORT ||3000
