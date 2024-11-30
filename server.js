@@ -103,6 +103,15 @@ app.post('/collection/orders', async (req, res) => {
     }
 })
 
+// Retrieve a document by ID from a specified collection
+const ObjectID = require('mongodb').ObjectID; 
+app.get('/collection/:collectionName/:id', (req, res, next) => { 
+    req.collection.findOne({ _id: new ObjectID(req.params.id) }, (e, result) => { 
+        if (e) return next(e); 
+        res.send(result); 
+    }); 
+});
+
 // Serve static files from the "image" directory
 app.use(function(req, res, next) { 
     const filePath = path.join(__dirname, "image", req.url); 
