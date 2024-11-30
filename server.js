@@ -49,12 +49,12 @@ app.get('/collection/:collectionName', (req, res, next) => {
 // Search for lessons by subject or location using query parameters
 app.get('/collection/Lesson', (req, res, next) => {
     const searchQuery = req.query.q; 
-    const searchRegex = new RegExp(searchQuery, 'i'); 
+    const searchRegex = new RegExp(searchQuery, 'i'); // Case-insensitive regex for search
 
     req.collection.find({
         $or: [
-            { subject: searchRegex }, 
-            { Location: searchRegex } 
+            { subject: searchRegex }, // Matches lessons with the query in the subject field
+            { Location: searchRegex } // Matches lessons with the query in the Location field
         ]
     }).toArray((error, results) => {
         if (error) return next(error);
@@ -101,7 +101,7 @@ app.post('/collection/orders', async (req, res) => {
         console.error('Order insertion failed:', err);
         res.status(500).json({ message: 'Failed to create order', error: err.message });
     }
-})
+});
 
 // Retrieve a document by ID from a specified collection
 const ObjectID = require('mongodb').ObjectID; 
@@ -147,4 +147,3 @@ app.use(function(req, res) {
 // Start the server
 const port = process.env.PORT || 3000;
 app.listen(port);
-
