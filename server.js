@@ -78,6 +78,31 @@ app.get('/collection/Orders', (req, res, next) => {
     });
 });
 
+// Add a new order to the "Orders" collection with validation
+app.post('/collection/orders', async (req, res) => {
+    try {
+        const orderDetails = req.body;
+
+        // Validate required fields in the order
+        if (!orderDetails.customer || !orderDetails.items || !orderDetails.totalPrice) {
+            return res.status(400).json({ message: 'Missing required order fields' });
+        }
+
+        // Insert the order into the 'Orders' collection
+        const result = await db.collection('Orders').insertOne(orderDetails);
+
+        // Respond with success
+        res.status(201).json({
+            message: 'Order placed successfully',
+            order: result.ops[0] // Return the inserted order
+        });
+    } catch (err) {
+        // Handle errors
+        console.error('Order insertion failed:', err);
+        res.status(500).json({ message: 'Failed to create order', error: err.message });
+    }
+})
+
 // Serve static files from the "image" directory
 app.use(function(req, res, next) { 
     const filePath = path.join(__dirname, "image", req.url); 
