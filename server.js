@@ -11,6 +11,9 @@ const app = express();
 app.use(express.json());
 app.set('port', 3000);
 
+
+
+
 // Middleware for enabling Cross-Origin Resource Sharing (CORS)
 app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -20,9 +23,8 @@ app.use((req, res, next) => {
     next();
 });
 
-let db;
-
 // Connecting to MongoDB Atlas
+let db;
 MongoClient.connect('mongodb+srv://parvathim2004:1234@cluster0.acnmseg.mongodb.net/', (err, client) => {
     db = client.db('CST3144_M00909333');
 });
