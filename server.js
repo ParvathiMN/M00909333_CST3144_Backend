@@ -2,9 +2,10 @@
 const express = require('express');
 const { result } = require('lodash');
 const MongoClient = require('mongodb').MongoClient;
+const cors = require('cors');
 var path = require("path"); 
 var fs = require("fs"); 
-import cors from 'cors';
+
 
 const app = express();
 
@@ -27,12 +28,13 @@ let db;
 // MongoDB connection
 const connectionURI = 'mongodb+srv://parvathim2004:1234@cluster0.acnmseg.mongodb.net/';
 const client = new MongoClient(connectionURI);
-
 async function connectToDB() {
     try {
         await client.connect();
-        db = client.db('CST3144_M00909333');
         console.log('Connected to MongoDB');
+        // Select the database
+        db = client.db('CST3144_M00909333');
+        console.log('Database selected:', 'CST3144_M00909333');
     } catch (error) {
         console.error('Error connecting to MongoDB:', error);
     }
@@ -40,23 +42,25 @@ async function connectToDB() {
 
 // Ensure connection before starting the server
 connectToDB().then(() => {
-    // Root route to show a basic response
-    app.get('/', (req, res, next) => {
-        res.send('Select a collection, e.g., /collection/messages');
-    });
-
     // Middleware to identify collection names in the route
-    app.param('collectionName', (req, res, next, collectionName) => { 
-        req.collection = db.collection(collectionName); 
-        return next(); 
+    app.param('collectionName', (req, res, next, collectionName) => {
+        try {
+            if (!db) throw new Error("Database connection not established");
+            const collection = db.collection(collectionName);
+            if (!collection) throw new Error(`Collection ${collectionName} not found`);
+            req.collection = collection;
+            next();
+        } catch (error) {
+            next(error); // Pass error to the error-handling middleware
+        }
     });
 
     // Retrieve all documents from a specified collection
-    app.get('/collection/:collectionName', (req, res, next) => { 
-        req.collection.find({}).toArray((e, results) => { 
-            if (e) return next(e); 
-            res.send(results); 
-        }); 
+    app.get('/collection/:collectionName', (req, res, next) => {
+        req.collection.find({}).toArray((err, results) => {
+            if (err) return next(err);
+            res.json(results);
+        });
     });
 
     // Search for lessons by subject or location using query parameters
@@ -169,6 +173,5 @@ connectToDB().then(() => {
     });
 
     // Start the server
-   // const port = process.env.PORT || 3000;
-    app.listen( 3000,"0.0.0.0", () =>  console.log('Server is running on port 3000 '));
+    app.listen( 3000 , "0.0.0.0", () =>  console.log('Server is running on port 3000 '));
 });
