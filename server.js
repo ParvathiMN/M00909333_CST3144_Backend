@@ -4,13 +4,14 @@ const { result } = require('lodash');
 const MongoClient = require('mongodb').MongoClient;
 var path = require("path"); 
 var fs = require("fs"); 
+import cors from 'cors';
 
 const app = express();
-const port = process.env.PORT || 3000;
 
 // Middleware to parse JSON request bodies
 app.use(express.json());
 app.set('port', 3000);
+app.use (cors())
 
 // Middleware for enabling Cross-Origin Resource Sharing (CORS)
 app.use((req, res, next) => {
@@ -23,17 +24,17 @@ app.use((req, res, next) => {
 
 let db;
 
-// MongoDB connection using async/await
+// MongoDB connection
+const connectionURI = 'mongodb+srv://parvathim2004:1234@cluster0.acnmseg.mongodb.net/';
+const client = new MongoClient(connectionURI);
+
 async function connectToDB() {
     try {
-        const client = await MongoClient.connect('mongodb+srv://parvathim2004:1234@cluster0.acnmseg.mongodb.net/', {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        });
+        await client.connect();
         db = client.db('CST3144_M00909333');
         console.log('Connected to MongoDB');
-    } catch (err) {
-        console.error('Failed to connect to MongoDB', err);
+    } catch (error) {
+        console.error('Error connecting to MongoDB:', error);
     }
 }
 
@@ -106,29 +107,25 @@ connectToDB().then(() => {
     });
 
     // Add a new order to the "Orders" collection with validation
-    app.post('/collection/orders', async (req, res) => {
+    app.post('/collection/Orders', async (req, res) => {
         try {
             const orderDetails = req.body;
-
-            // Validate required fields in the order
-            if (!orderDetails.customer || !orderDetails.items || !orderDetails.totalPrice) {
-                return res.status(400).json({ message: 'Missing required order fields' });
+    
+            // Validate required fields
+            if (!orderDetails.customer || !orderDetails.items || orderDetails.items.length === 0 || !orderDetails.totalPrice) {
+                return res.status(400).json({ message: 'Invalid order details' });
             }
-
-            // Insert the order into the 'Orders' collection
+    
             const result = await db.collection('Orders').insertOne(orderDetails);
-
-            // Respond with success
             res.status(201).json({
                 message: 'Order placed successfully',
-                order: result.ops[0] // Return the inserted order
+                order: result.ops[0],
             });
-        } catch (err) {
-            // Handle errors
-            console.error('Order insertion failed:', err);
-            res.status(500).json({ message: 'Failed to create order', error: err.message });
+        } catch (error) {
+            res.status(500).json({ message: 'Failed to place order', error: error.message });
         }
     });
+    
 
     // Retrieve a document by ID from a specified collection
     const ObjectID = require('mongodb').ObjectID; 
@@ -172,8 +169,6 @@ connectToDB().then(() => {
     });
 
     // Start the server
-    
-    app.listen(port, () => {
-        console.log(`Server is running on port ${port}`);
-    });
+   // const port = process.env.PORT || 3000;
+    app.listen( 3000,"0.0.0.0", () =>  console.log('Server is running on port 3000 '));
 });
