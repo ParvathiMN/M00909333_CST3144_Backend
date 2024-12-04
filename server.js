@@ -21,28 +21,11 @@ app.use((req, res, next) => {
     next();
 }); 
 
-let db;
-
-// MongoDB connection using async/await
-async function connectToDB() {
-    try {
-        const client = await MongoClient.connect('mongodb+srv://parvathim2004:1234@cluster0.acnmseg.mongodb.net/', {
-            useNewUrlParser: true,
-            useUnifiedTopology: true
-        });
-        db = client.db('CST3144_M00909333');
-        console.log('Connected to MongoDB');
-    } catch (err) {
-        console.error('Failed to connect to MongoDB', err);
-    }
-}
-
-// Ensure connection before starting the server
-connectToDB().then(() => {
-    // Root route to show a basic response
-    app.get('/', (req, res, next) => {
-        res.send('Select a collection, e.g., /messages');
-    });
+// MongoDB connection  
+let db; 
+MongoClient.connect('mongodb+srv://parvathim2004:1234@cluster0.acnmseg.mongodb.net/', (err, client) => { 
+db = client.db('CST3144_M00909333') 
+}) 
 
     // Middleware to identify collection names in the route
     app.param('collectionName', (req, res, next, collectionName) => { 
@@ -176,4 +159,3 @@ connectToDB().then(() => {
     app.listen(port, () => {
         console.log('Server is running on port ${port}');
     });
-});
