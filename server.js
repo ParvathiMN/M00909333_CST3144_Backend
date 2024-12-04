@@ -2,8 +2,8 @@
 const express = require('express');
 const { result } = require('lodash');
 const MongoClient = require('mongodb').MongoClient;
-var path = require("path");
-var fs = require("fs");
+var path = require("path"); 
+var fs = require("fs"); 
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -19,7 +19,7 @@ app.use((req, res, next) => {
     res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
     res.setHeader("Access-Control-Allow-Headers", "Access-Control-Allow-Headers, Origin,Accept, X-Requested-With, Content-Type, Access-Control-Request-Method, Access-Control-Request-Headers");
     next();
-});
+}); 
 
 let db;
 
@@ -39,34 +39,23 @@ async function connectToDB() {
 
 // Ensure connection before starting the server
 connectToDB().then(() => {
-    if (!db) {
-        console.error("Database connection failed. Server cannot start.");
-        process.exit(1); // Exit the process to prevent further issues
-    }
-
     // Root route to show a basic response
-    app.get('/', (req, res) => {
+    app.get('/', (req, res, next) => {
         res.send('Select a collection, e.g., /collection/messages');
     });
 
     // Middleware to identify collection names in the route
-    app.param('collectionName', (req, res, next, collectionName) => {
-        if (!db) {
-            return res.status(500).send("Database connection not established.");
-        }
-        req.collection = db.collection(collectionName);
-        return next();
+    app.param('collectionName', (req, res, next, collectionName) => { 
+        req.collection = db.collection(collectionName); 
+        return next(); 
     });
 
     // Retrieve all documents from a specified collection
-    app.get('/collection/:collectionName', (req, res, next) => {
-        if (!req.collection) {
-            return res.status(500).send("Collection not found.");
-        }
-        req.collection.find({}).toArray((e, results) => {
-            if (e) return next(e);
-            res.send(results);
-        });
+    app.get('/collection/:collectionName', (req, res, next) => { 
+        req.collection.find({}).toArray((e, results) => { 
+            if (e) return next(e); 
+            res.send(results); 
+        }); 
     });
 
     // Search for lessons by subject or location using query parameters
@@ -101,24 +90,18 @@ connectToDB().then(() => {
     });
 
     // Add a new document to a specified collection
-    app.post('/collection/:collectionName', (req, res, next) => {
-        if (!req.collection) {
-            return res.status(500).send("Collection not found.");
-        }
-        req.collection.insert(req.body, (e, results) => {
-            if (e) return next(e);
+    app.post('/collection/:collectionName', (req, res, next) => { 
+        req.collection.insert(req.body, (e, results) => { 
+            if (e) return next(e); 
             res.send(results.ops); // Return the inserted document
-        });
+        }); 
     });
 
     // Retrieve all documents from the "Orders" collection
     app.get('/collection/Orders', (req, res, next) => {
-        if (!req.collection) {
-            return res.status(500).send("Collection not found.");
-        }
         req.collection.find({}).toArray((error, results) => {
             if (error) return next(error);
-            res.json(results);
+            res.json(results); 
         });
     });
 
@@ -148,58 +131,49 @@ connectToDB().then(() => {
     });
 
     // Retrieve a document by ID from a specified collection
-    const ObjectID = require('mongodb').ObjectID;
-    app.get('/collection/:collectionName/:id', (req, res, next) => {
-        if (!req.collection) {
-            return res.status(500).send("Collection not found.");
-        }
-        req.collection.findOne({ _id: new ObjectID(req.params.id) }, (e, result) => {
-            if (e) return next(e);
-            res.send(result);
-        });
+    const ObjectID = require('mongodb').ObjectID; 
+    app.get('/collection/:collectionName/:id', (req, res, next) => { 
+        req.collection.findOne({ _id: new ObjectID(req.params.id) }, (e, result) => { 
+            if (e) return next(e); 
+            res.send(result); 
+        }); 
     });
 
     // Update a document by ID in a specified collection
-    app.put('/collection/:collectionName/:id', (req, res, next) => {
-        if (!req.collection) {
-            return res.status(500).send("Collection not found.");
-        }
+    app.put('/collection/:collectionName/:id', (req, res, next) => { 
         req.collection.update(
-            { _id: new ObjectID(req.params.id) },
+            { _id: new ObjectID(req.params.id) }, 
             { $set: req.body }, // Update fields provided in the request body
-            { safe: true, multi: false },
-            (e, result) => {
-                if (e) return next(e);
-                res.send((result.result.n === 1) ? { msg: 'success' } : { msg: 'error' });
+            { safe: true, multi: false },  
+            (e, result) => { 
+                if (e) return next(e); 
+                res.send((result.result.n === 1) ? { msg: 'success' } : { msg: 'error' }); 
             }
-        );
+        ); 
     });
 
     // Serve static files from the "image" directory
-    app.use(function (req, res, next) {
-        const filePath = path.join(__dirname, "image", req.url);
-        fs.stat(filePath, function (err, fileInfo) {
-            if (err) {
-                next();
-                return;
-            }
-            if (fileInfo.isFile()) res.sendFile(filePath);
-            else next();
-        });
+    app.use(function(req, res, next) { 
+        const filePath = path.join(__dirname, "image", req.url); 
+        fs.stat(filePath, function(err, fileInfo) { 
+            if (err) { 
+                next(); 
+                return; 
+            } 
+            if (fileInfo.isFile()) res.sendFile(filePath); 
+            else next(); 
+        }); 
     });
 
     // Handle 404 errors for undefined routes
-    app.use(function (req, res) {
+    app.use(function(req, res) { 
         res.status(404); // Set status to 404
-        res.send("File not found!");
+        res.send("File not found!"); 
     });
 
     // Start the server
+    
     app.listen(port, () => {
-        console.log(`Server is running on port ${port}`);
+        console.log('Server is running on port ${port}');
     });
-}).catch(err => {
-    console.error("Failed to connect to MongoDB. Exiting...");
-    console.error(err);
-    process.exit(1);
 });
