@@ -41,7 +41,7 @@ async function connectToDB() {
 connectToDB().then(() => {
     // Root route to show a basic response
     app.get('/', (req, res, next) => {
-        res.send('Select a collection, e.g., /collection/messages');
+        res.send('Select a collection, e.g., /messages');
     });
 
     // Middleware to identify collection names in the route
@@ -51,7 +51,7 @@ connectToDB().then(() => {
     });
 
     // Retrieve all documents from a specified collection
-    app.get('/collection/:collectionName', (req, res, next) => { 
+    app.get('/:collectionName', (req, res, next) => { 
         req.collection.find({}).toArray((e, results) => { 
             if (e) return next(e); 
             res.send(results); 
@@ -90,7 +90,7 @@ connectToDB().then(() => {
     });
 
     // Add a new document to a specified collection
-    app.post('/collection/:collectionName', (req, res, next) => { 
+    app.post('/:collectionName', (req, res, next) => { 
         req.collection.insert(req.body, (e, results) => { 
             if (e) return next(e); 
             res.send(results.ops); // Return the inserted document
@@ -98,7 +98,7 @@ connectToDB().then(() => {
     });
 
     // Retrieve all documents from the "Orders" collection
-    app.get('/collection/Orders', (req, res, next) => {
+    app.get('/Orders', (req, res, next) => {
         req.collection.find({}).toArray((error, results) => {
             if (error) return next(error);
             res.json(results); 
@@ -106,7 +106,7 @@ connectToDB().then(() => {
     });
 
     // Add a new order to the "Orders" collection with validation
-    app.post('/collection/orders', async (req, res) => {
+    app.post('/orders', async (req, res) => {
         try {
             const orderDetails = req.body;
 
@@ -132,7 +132,7 @@ connectToDB().then(() => {
 
     // Retrieve a document by ID from a specified collection
     const ObjectID = require('mongodb').ObjectID; 
-    app.get('/collection/:collectionName/:id', (req, res, next) => { 
+    app.get('/:collectionName/:id', (req, res, next) => { 
         req.collection.findOne({ _id: new ObjectID(req.params.id) }, (e, result) => { 
             if (e) return next(e); 
             res.send(result); 
@@ -140,7 +140,7 @@ connectToDB().then(() => {
     });
 
     // Update a document by ID in a specified collection
-    app.put('/collection/:collectionName/:id', (req, res, next) => { 
+    app.put('/:collectionName/:id', (req, res, next) => { 
         req.collection.update(
             { _id: new ObjectID(req.params.id) }, 
             { $set: req.body }, // Update fields provided in the request body
