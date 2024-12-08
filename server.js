@@ -16,7 +16,7 @@ app.use (cors())
 
 // Middleware for enabling Cross-Origin Resource Sharing (CORS)
 app.use((req, res, next) => {
-    const allowedOrigin = "https://parvathimn.github.io/CST3144_CW1_M00909333/";
+    const allowedOrigin = "https://parvathimn.github.io/";
     res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
     res.setHeader("Access-Control-Allow-Credentials", "true");
     res.setHeader("Access-Control-Allow-Methods", "GET,HEAD,OPTIONS,POST,PUT");
