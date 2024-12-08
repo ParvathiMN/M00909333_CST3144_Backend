@@ -63,6 +63,14 @@ connectToDB().then(() => {
         });
     });
 
+    // Retrieve all documents from Lesson
+        app.get('/collection/Lesson', (req, res, next) => {
+            req.collection.find({}).toArray((err, results) => {
+                if (err) return next(err);
+                res.json(results);
+            });
+        });
+    
     // Search for lessons by subject or location using query parameters
     app.get("/search", function (req, res) {
         const searchQuery = req.query.q; // Get the search query from the URL
