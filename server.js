@@ -124,11 +124,21 @@ connectToDB().then(() => {
             const orderDetails = req.body;
     
             // Validate required fields
-            if (!orderDetails.customer || !orderDetails.items || orderDetails.items.length === 0 || !orderDetails.totalPrice) {
+            if (!orderDetails.customer || !orderDetails.cart || orderDetails.cart.length === 0 || !orderDetails.total) {
                 return res.status(400).json({ message: 'Invalid order details' });
             }
     
+            // Insert order into database
             const result = await db.collection('Orders').insertOne(orderDetails);
+    
+            // Decrease availability of slots dynamically
+            for (const item of orderDetails.cart) {
+                await db.collection('Lesson').updateOne(
+                    { _id: item._id },
+                    { $inc: { availableslots: -item.quantity } }
+                );
+            }
+    
             res.status(201).json({
                 message: 'Order placed successfully',
                 order: result.ops[0],
