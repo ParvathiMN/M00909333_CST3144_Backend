@@ -72,35 +72,28 @@ connectToDB().then(() => {
         });
     
     // Search for lessons by subject or location using query parameters
-    app.get("/search", function (req, res) {
-        const searchQuery = req.query.q; // Get the search query from the URL
-
+    app.get("/search", (req, res) => {
+        const searchQuery = req.query.q?.trim();
         if (!searchQuery) {
             return res.status(400).send("Search query parameter 'q' is required.");
         }
-
-        // Create a case-insensitive regex to match the search query
+    
         const searchRegex = new RegExp(searchQuery, 'i');
-
         db.collection('Lesson').find({
             $or: [
                 { subject: { $regex: searchRegex } },
                 { Location: { $regex: searchRegex } }
             ]
         }).toArray((err, results) => {
-            if (err) {
-                return res.status(500).send("Error occurred while searching.");
-            }
-
-            // If there are results, send them as a JSON response
+            if (err) return res.status(500).send("Error while searching.");
             if (results.length > 0) {
-                res.json(results);
+                res.json(results); // Send results as JSON
             } else {
-                // If no matches found, send a message
-                res.send("No lessons found matching the search criteria.");
+                res.send("No lessons found"); // Send plain text if no results are found
             }
         });
     });
+    
 
     // Add a new document to a specified collection
     app.post('/collection/:collectionName', (req, res, next) => { 
@@ -118,36 +111,39 @@ connectToDB().then(() => {
         });
     });
 
-    // Add a new order to the "Orders" collection with validation
-    app.post('/collection/Orders', async (req, res) => {
+    //post for orders
+    app.post('/collection/Orders', async (req, res) => { 
         try {
             const orderDetails = req.body;
     
             // Validate required fields
             if (!orderDetails.customer || !orderDetails.cart || orderDetails.cart.length === 0 || !orderDetails.total) {
-                return res.status(400).json({ message: 'Invalid order details' });
+                return res.status(400).json({ message: 'Invalid order details. Please provide all required fields.' });
             }
     
             // Insert order into database
             const result = await db.collection('Orders').insertOne(orderDetails);
     
-            // Decrease availability of slots dynamically
-            for (const item of orderDetails.cart) {
-                await db.collection('Lesson').updateOne(
+            // Decrease availability of slots dynamically for each item in the cart
+            const updatePromises = orderDetails.cart.map(item => 
+                db.collection('Lesson').updateOne(
                     { _id: item._id },
                     { $inc: { availableslots: -item.quantity } }
-                );
-            }
+                )
+            );
+    
+            // Wait for all updates to complete
+            await Promise.all(updatePromises);
     
             res.status(201).json({
                 message: 'Order placed successfully',
-                order: result.ops[0],
+                order: result.ops[0], 
             });
         } catch (error) {
             res.status(500).json({ message: 'Failed to place order', error: error.message });
         }
-    });
-    
+    });    
+
 
     // Retrieve a document by ID from a specified collection
     const ObjectID = require('mongodb').ObjectID; 
@@ -171,9 +167,30 @@ connectToDB().then(() => {
         ); 
     });
 
+    // Update a document in a specified collection
+app.put('/collection/:collectionName', (req, res) => {
+    const { collectionName, id } = req.params;
+
+    req.collection.updateOne(
+        { _id: new ObjectID(id) },  
+        { $set: req.body },         
+        (err, result) => {
+            if (err) {
+                console.error("Error updating document:", err);
+                return res.status(500).send({ msg: 'error', error: err });
+            }
+            // Check if the document was updated
+            res.send(result.matchedCount === 1 ? { msg: 'success' } : { msg: 'not found' });
+        }
+    );
+});
+
+
     // Serve static files from the "image" directory
+    app.use('/image', express.static(path.join(__dirname, 'asset')));
+
     app.use(function(req, res, next) { 
-        const filePath = path.join(__dirname, "image", req.url); 
+        const filePath = path.join(__dirname, "asset", req.url); 
         fs.stat(filePath, function(err, fileInfo) { 
             if (err) { 
                 next(); 
