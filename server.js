@@ -167,25 +167,6 @@ connectToDB().then(() => {
         ); 
     });
 
-    // Update a document in a specified collection
-app.put('/collection/:collectionName', (req, res) => {
-    const { collectionName, id } = req.params;
-
-    req.collection.updateOne(
-        { _id: new ObjectID(id) },  
-        { $set: req.body },         
-        (err, result) => {
-            if (err) {
-                console.error("Error updating document:", err);
-                return res.status(500).send({ msg: 'error', error: err });
-            }
-            // Check if the document was updated
-            res.send(result.matchedCount === 1 ? { msg: 'success' } : { msg: 'not found' });
-        }
-    );
-});
-
-
     // Serve static files from the "image" directory
     app.use('/asset', express.static(path.join(__dirname, 'asset')));
 
