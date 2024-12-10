@@ -187,7 +187,7 @@ app.put('/collection/:collectionName', (req, res) => {
 
 
     // Serve static files from the "image" directory
-    app.use('/image', express.static(path.join(__dirname, 'asset')));
+    app.use('/asset', express.static(path.join(__dirname, 'asset')));
 
     app.use(function(req, res, next) { 
         const filePath = path.join(__dirname, "asset", req.url); 
