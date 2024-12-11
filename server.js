@@ -9,10 +9,21 @@ var fs = require("fs");
 
 const app = express();
 
+
+// Logger middleware
+app.use((req, res, next) => {
+    const now = new Date().toISOString();
+    console.log(`[${now}] ${req.method} ${req.url}`);
+    next();
+});
+
+
+
 // Middleware to parse JSON request bodies
 app.use(express.json());
 app.set('port', 3000);
 app.use(cors())
+
 
 // Middleware for enabling Cross-Origin Resource Sharing (CORS)
 app.use((req, res, next) => {
